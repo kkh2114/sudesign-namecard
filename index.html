@@ -4,37 +4,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>김길호 대표 디지털 명함</title>
-  <style>
-    body { font-family: sans-serif; background: #f4f4f4; text-align: center; padding: 40px; }
-    .card { background: #fff; border-radius: 16px; padding: 30px; max-width: 480px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
-    img { border-radius: 100px; width: 140px; height: 140px; object-fit: cover; }
-    h1 { margin-bottom: 0; }
-    p { margin: 4px 0; }
-    small { color: #666; }
-    a { color: #0066cc; text-decoration: none; }
-    input, button { margin-top: 10px; padding: 8px; width: 90%; max-width: 300px; }
-  </style>
+  <title>김길호 디지털 명함</title>
 </head>
 <body>
-  <div class="card">
-    <img src="profile.jpg" alt="김길호 프로필 사진" />
-    <h1>김길호</h1>
-    <p><strong>대표이사, 에스유디자인(주)</strong></p>
-    <p>전화: <a href="tel:024140622">02-414-0622</a></p>
-    <p>팩스: 02-414-0623</p>
-    <p>주소: 서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203</p>
-    <p>이메일: <a href="mailto:sudesignoffice@gmail.com">sudesignoffice@gmail.com</a></p>
-    <p>개인 이메일: <a href="mailto:sudesigmgo@gmail.com">sudesigmgo@gmail.com</a></p>
-    <p><a href="https://litt.ly/kghcoach" target="_blank">🔗 최신 프로필 바로가기</a></p>
-    <a href="kim-gilho.vcf" download><button>📇 연락처 저장 (vCard)</button></a>
-    <hr>
-    <p><strong>명함을 받으셨다면 아래 내용을 남겨주세요:</strong></p>
-    <input type="text" id="receiverName" placeholder="당신의 이름을 입력하세요" />
-    <input type="file" id="receiverImage" accept="image/*" />
-    <button onclick="submitRecord()">명함 받기 기록</button>
-    <p id="statusMsg"></p>
-  </div>
+  <h1>김길호 대표 디지털 명함</h1>
+  <p>회사명: 에스유디자인(주)</p>
+  <p>전화: 02-414-0622</p>
+  <p>팩스: 02-414-0623</p>
+  <p>휴대폰: 010-2749-2157</p>
+  <p>이메일: sudesignoffice@gmail.com</p>
+  <p>개인메일: sudesigmgo@gmail.com</p>
+  <p>주소: 서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203</p>
+  <p>🔗 <a href="https://litt.ly/kghcoach" target="_blank">최신 프로필 링크</a></p>
+
+  <hr/>
+  <p>명함을 받으셨다면 아래 이름과 이미지(선택)를 남겨주세요</p>
+  <input type="text" id="receiverName" placeholder="당신의 이름을 입력하세요" />
+  <input type="file" id="receiverImage" accept="image/*" capture="environment" />
+  <button onclick="submitRecord()">명함 받기 기록</button>
+  <p id="statusMsg"></p>
 
   <script type="module">
     import {{ initializeApp }} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -55,28 +43,47 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    window.submitRecord = async () => {{
-      const name = document.getElementById('receiverName').value;
-      const file = document.getElementById('receiverImage').files[0];
-      const msg = document.getElementById('statusMsg');
-      msg.innerText = "업로드 중입니다...";
-
-      if (!name || !file) {{
-        msg.innerText = "이름과 이미지를 모두 입력해주세요.";
+    window.submitRecord = () => {{
+      const name = document.getElementById("receiverName").value;
+      const file = document.getElementById("receiverImage").files[0];
+      const msg = document.getElementById("statusMsg");
+      if (!name) {{
+        msg.innerText = "이름은 반드시 입력해 주세요.";
         return;
       }}
+      msg.innerText = "위치를 확인 중입니다...";
+      navigator.geolocation.getCurrentPosition(async (position) => {{
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-      const storageRef = ref(storage, `received_cards/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+        let imageURL = "";
+        if (file) {{
+          const storageRef = ref(storage, `received_cards/${Date.now()}_${file.name}`);
+          await uploadBytes(storageRef, file);
+          imageURL = await getDownloadURL(storageRef);
+        }}
 
-      await addDoc(collection(db, "scan_records"), {{
-        name: name,
-        image: downloadURL,
-        timestamp: serverTimestamp()
+        fetch(`https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${{lng}}&y=${{lat}}`, {{
+          headers: {{
+            Authorization: 'KakaoAK 35e17a3de123d2c236d1c5bfedafa411'
+          }}
+        }})
+        .then(res => res.json())
+        .then(async (data) => {{
+          const address = data.documents[0]?.address?.address_name || "주소 변환 실패";
+          await addDoc(collection(db, "scan_records"), {{
+            name: name,
+            image: imageURL,
+            latitude: lat,
+            longitude: lng,
+            address: address,
+            timestamp: serverTimestamp()
+          }});
+          msg.innerText = "기록이 저장되었습니다. 감사합니다!";
+        }});
+      }}, () => {{
+        msg.innerText = "위치 정보를 가져올 수 없습니다. 위치 권한을 허용해 주세요.";
       }});
-
-      msg.innerText = "기록이 성공적으로 저장되었습니다. 감사합니다!";
     }};
   </script>
 </body>

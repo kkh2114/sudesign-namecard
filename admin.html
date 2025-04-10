@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>관리자 로그인 기록 포함</title>
+</head>
+<body>
+  <h1>Firebase Auth 접속 기록 저장 예시</h1>
+  <p>관리자 로그인 시 Firestore에 email, uid, timestamp, userAgent를 저장합니다.</p>
+</body>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCkjC3jGH0cYxjDjkau5E9p73y4rgDcc44",
+    authDomain: "sudesign-namecard.firebaseapp.com",
+    projectId: "sudesign-namecard",
+    storageBucket: "sudesign-namecard.firebasestorage.app",
+    messagingSenderId: "67523972912",
+    appId: "1:67523972912:web:0b11636b5f3deeec5742f5",
+    measurementId: "G-SRPYW06VWB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  async function logLogin(user) {
+    const userAgent = navigator.userAgent;
+    await addDoc(collection(db, "logins"), {
+      email: user.email,
+      uid: user.uid,
+      userAgent: userAgent,
+      timestamp: serverTimestamp()
+    });
+  }
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      logLogin(user);
+      console.log("로그인 기록 저장됨:", user.email);
+    } else {
+      console.log("로그아웃 상태");
+    }
+  });
+
+</script>
+</html>
