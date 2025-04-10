@@ -128,7 +128,7 @@
 
     #exitButton {
       position: sticky !important;
-      margin-top: 30px;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -167,7 +167,7 @@
     font-weight: bold;
     border: none;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    position: sticky; margin-top: 30px;
+    position: sticky; margin-top: 10px;
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -254,9 +254,15 @@
     };
 
     window.downloadAndExit = () => {
-      vcfLink.click();
-      setTimeout(() => window.close(), 500);
-    };
+  vcfLink.click();
+  setTimeout(() => {
+    const confirmed = confirm("연락처가 저장되었나요? 저장 후 확인을 눌러주세요.");
+    if (confirmed) {
+      alert("감사합니다. 명함이 저장되었습니다! 곧 메인 페이지로 이동합니다.");
+      setTimeout(() => window.location.href = "https://kkh2114.github.io", 1500);
+    }
+  }, 500);
+};
   </script>
 </body>
 </html>
