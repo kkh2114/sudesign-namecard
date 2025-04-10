@@ -5,6 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin - 명함 기록</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+      font-size: 0.9em;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+      word-break: break-word;
+    }
+    th {
+      cursor: pointer;
+      background-color: #f2f2f2;
+    }
+    input[type="text"] {
+      padding: 8px;
+      margin: 10px 0;
+      width: 100%;
+      max-width: 400px;
+    }
+    .pagination {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pagination button {
+      padding: 6px 12px;
+      border: 1px solid #007bff;
+      background: white;
+      color: #007bff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .pagination button.active {
+      background: #007bff;
+      color: white;
+    }
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+      th {
+        display: none;
+      }
+      td {
+        border: none;
+        border-bottom: 1px solid #ddd;
+        position: relative;
+        padding-left: 50%;
+      }
+      td::before {
+        position: absolute;
+        left: 10px;
+        top: 8px;
+        white-space: nowrap;
+        font-weight: bold;
+      }
+    }
+  </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import {
@@ -33,6 +103,10 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    let allData = [];
+    let currentPage = 1;
+    const recordsPerPage = 10;
+
     async function login() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -54,34 +128,87 @@
       alert("샘플 기록이 추가되었습니다!");
     }
 
+    function paginate(data, page) {
+      const start = (page - 1) * recordsPerPage;
+      return data.slice(start, start + recordsPerPage);
+    }
+
+    function renderTable(dataArray) {
+      const table = document.getElementById("recordsTable");
+      table.innerHTML = "<tr><th onclick=\"sortTable(0)\">이름</th><th onclick=\"sortTable(1)\">주소</th><th onclick=\"sortTable(2)\">시간</th><th onclick=\"sortTable(3)\">메시지</th><th>이미지</th></tr>";
+      const pageData = paginate(dataArray, currentPage);
+
+      pageData.forEach(data => {
+        const row = table.insertRow();
+        row.insertCell(0).textContent = data.이름 || "";
+        row.insertCell(1).textContent = data.주소 || "";
+        row.insertCell(2).textContent = data.시간 || "";
+        row.insertCell(3).textContent = data.메시지 || "";
+        const imgCell = row.insertCell(4);
+        if (data.이미지) {
+          const img = document.createElement("img");
+          img.src = data.이미지;
+          img.width = 60;
+          imgCell.appendChild(img);
+        } else {
+          imgCell.textContent = "없음";
+        }
+      });
+      renderPagination(dataArray.length);
+    }
+
+    function renderPagination(total) {
+      const container = document.getElementById("pagination");
+      container.innerHTML = "";
+      const totalPages = Math.ceil(total / recordsPerPage);
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add("active");
+        btn.onclick = () => {
+          currentPage = i;
+          renderTable(filteredData);
+        };
+        container.appendChild(btn);
+      }
+    }
+
+    let filteredData = [];
+    function filterTable() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      filteredData = allData.filter(d =>
+        d.이름.toLowerCase().includes(query) ||
+        d.주소.toLowerCase().includes(query) ||
+        d.메시지.toLowerCase().includes(query)
+      );
+      currentPage = 1;
+      renderTable(filteredData);
+    }
+
+    let sortAsc = true;
+    function sortTable(colIndex) {
+      const keys = ["이름", "주소", "시간", "메시지"];
+      const key = keys[colIndex];
+      filteredData.sort((a, b) => {
+        const valA = a[key] || "";
+        const valB = b[key] || "";
+        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      });
+      sortAsc = !sortAsc;
+      renderTable(filteredData);
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("adminSection").style.display = "block";
 
         const querySnapshot = await getDocs(collection(db, "scan_records"));
-        const table = document.getElementById("recordsTable");
-        let dataArray = [];
+        allData = [];
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          const row = table.insertRow();
-          row.insertCell(0).textContent = data.name || "";
-          row.insertCell(1).textContent = data.address || "";
-          row.insertCell(2).textContent = new Date(data.timestamp?.seconds * 1000).toLocaleString();
-          const msgCell = row.insertCell(3);
-          msgCell.textContent = data.message || "";
-          const imgCell = row.insertCell(4);
-          if (data.imageUrl) {
-            const img = document.createElement("img");
-            img.src = data.imageUrl;
-            img.width = 60;
-            imgCell.appendChild(img);
-          } else {
-            imgCell.textContent = "없음";
-          }
-
-          dataArray.push({
+          allData.push({
             이름: data.name || "",
             주소: data.address || "",
             시간: new Date(data.timestamp?.seconds * 1000).toLocaleString(),
@@ -90,8 +217,11 @@
           });
         });
 
+        filteredData = allData;
+        renderTable(filteredData);
+
         window.exportExcel = () => {
-          const worksheet = XLSX.utils.json_to_sheet(dataArray);
+          const worksheet = XLSX.utils.json_to_sheet(allData);
           const workbook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(workbook, worksheet, "명함기록");
           XLSX.writeFile(workbook, "명함기록.xlsx");
@@ -101,6 +231,8 @@
 
     window.login = login;
     window.addSampleRecord = addSampleRecord;
+    window.filterTable = filterTable;
+    window.sortTable = sortTable;
   </script>
 </head>
 <body>
@@ -113,11 +245,11 @@
 
   <div id="adminSection" style="display:none;">
     <h2>명함 수신 기록</h2>
+    <input type="text" id="searchInput" oninput="filterTable()" placeholder="이름, 주소, 메시지 검색" />
     <button onclick="exportExcel()">📥 엑셀로 다운로드</button>
     <button onclick="addSampleRecord()">🧪 샘플 데이터 추가</button>
-    <table border="1" id="recordsTable">
-      <tr><th>이름</th><th>주소</th><th>시간</th><th>메시지</th><th>이미지</th></tr>
-    </table>
+    <table id="recordsTable"></table>
+    <div id="pagination" class="pagination"></div>
   </div>
 </body>
 </html>
