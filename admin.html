@@ -8,8 +8,18 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      addDoc,
+      Timestamp
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCkjC3jGH0cYxjDjkau5E9p73y4rgDcc44",
@@ -34,6 +44,16 @@
       }
     }
 
+    async function addSampleRecord() {
+      await addDoc(collection(db, "scan_records"), {
+        name: "홍길동",
+        address: "서울시 강남구 테헤란로 123",
+        imageUrl: "https://via.placeholder.com/100",
+        timestamp: Timestamp.now()
+      });
+      alert("샘플 기록이 추가되었습니다!");
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById("loginSection").style.display = "none";
@@ -49,20 +69,21 @@
           row.insertCell(0).textContent = data.name || "";
           row.insertCell(1).textContent = data.address || "";
           row.insertCell(2).textContent = new Date(data.timestamp?.seconds * 1000).toLocaleString();
-const imgCell = row.insertCell(3);
-if (data.imageUrl) {
-  const img = document.createElement("img");
-  img.src = data.imageUrl;
-  img.width = 60;
-  imgCell.appendChild(img);
-} else {
-  imgCell.textContent = "없음";
-}
+          const imgCell = row.insertCell(3);
+          if (data.imageUrl) {
+            const img = document.createElement("img");
+            img.src = data.imageUrl;
+            img.width = 60;
+            imgCell.appendChild(img);
+          } else {
+            imgCell.textContent = "없음";
+          }
+
           dataArray.push({
             이름: data.name || "",
             주소: data.address || "",
             시간: new Date(data.timestamp?.seconds * 1000).toLocaleString(),
-이미지: data.imageUrl || ""
+            이미지: data.imageUrl || ""
           });
         });
 
@@ -76,6 +97,7 @@ if (data.imageUrl) {
     });
 
     window.login = login;
+    window.addSampleRecord = addSampleRecord;
   </script>
 </head>
 <body>
@@ -89,6 +111,7 @@ if (data.imageUrl) {
   <div id="adminSection" style="display:none;">
     <h2>명함 수신 기록</h2>
     <button onclick="exportExcel()">📥 엑셀로 다운로드</button>
+    <button onclick="addSampleRecord()">🧪 샘플 데이터 추가</button>
     <table border="1" id="recordsTable">
       <tr><th>이름</th><th>주소</th><th>시간</th><th>이미지</th></tr>
     </table>
