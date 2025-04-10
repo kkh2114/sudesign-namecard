@@ -49,10 +49,20 @@
           row.insertCell(0).textContent = data.name || "";
           row.insertCell(1).textContent = data.address || "";
           row.insertCell(2).textContent = new Date(data.timestamp?.seconds * 1000).toLocaleString();
+const imgCell = row.insertCell(3);
+if (data.imageUrl) {
+  const img = document.createElement("img");
+  img.src = data.imageUrl;
+  img.width = 60;
+  imgCell.appendChild(img);
+} else {
+  imgCell.textContent = "없음";
+}
           dataArray.push({
             이름: data.name || "",
             주소: data.address || "",
-            시간: new Date(data.timestamp?.seconds * 1000).toLocaleString()
+            시간: new Date(data.timestamp?.seconds * 1000).toLocaleString(),
+이미지: data.imageUrl || ""
           });
         });
 
@@ -80,7 +90,7 @@
     <h2>명함 수신 기록</h2>
     <button onclick="exportExcel()">📥 엑셀로 다운로드</button>
     <table border="1" id="recordsTable">
-      <tr><th>이름</th><th>주소</th><th>시간</th></tr>
+      <tr><th>이름</th><th>주소</th><th>시간</th><th>이미지</th></tr>
     </table>
   </div>
 </body>
