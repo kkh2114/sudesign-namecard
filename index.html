@@ -4,8 +4,22 @@
 <head>
   <meta charset="UTF-8" />
   <title>김길호 디지털 명함</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    input, button, a.download-btn {
+      padding: 10px;
+      margin: 10px;
+      width: 80%;
+      max-width: 400px;
+      text-decoration: none;
+      background-color: #007bff;
+      color: white;
+      display: inline-block;
+      border-radius: 5px;
+    }
+  </style>
 </head>
-<body style="font-family: sans-serif; text-align: center; padding: 20px;">
+<body>
   <h1>김길호 (대표이사)</h1>
   <p>에스유디자인(주)</p>
   <p>📞 02-414-0622 (회사)</p>
@@ -14,23 +28,20 @@
   <p>📧 sudesignoffice@gmail.com</p>
   <p>📧 (개인) sudesigmgo@gmail.com</p>
   <p>🏢 서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203</p>
-  <p>🔗 <a href="https://litt.ly/kghcoach" target="_blank">프로필 보기</a></p>
+  <p>🔗 <a href="https://litt.ly/kghcoach" target="_blank">최신 프로필 보기</a></p>
   <br/>
-  <a href="data:text/vcard;charset=utf-8,
-BEGIN:VCARD
-VERSION:3.0
-N:Kim;Gil-ho;;;
-FN:김길호
-ORG:에스유디자인(주)
-TITLE:대표이사
-TEL;TYPE=WORK,VOICE:02-414-0622
-TEL;TYPE=CELL,VOICE:010-2749-2157
-EMAIL:sudesignoffice@gmail.com
-EMAIL:sudesigmgo@gmail.com
-ADR:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;
-URL:https://litt.ly/kghcoach
-END:VCARD" download="Kim_Gil_Ho.vcf">
-  📥 연락처 저장하기 (vCard)
-  </a>
+  <a href="data:text/vcard;charset=utf-8,BEGIN:VCARD%0AVERSION:3.0%0AN:Kim;Gil-ho;;;%
+0AFN:김길호%0AORG:%EC%97%90%EC%8A%A4%EC%9C%A0%EB%94%94%EC%9E%90%EC%9D%B8(%EC%A3%BC)%0A
+TITLE:%EB%8C%80%ED%91%9C%EC%9D%B4%EC%82%AC%0ATEL;TYPE=WORK,VOICE:02-414-0622%0ATEL;TYPE=CELL,
+VOICE:010-2749-2157%0AEMAIL:sudesignoffice@gmail.com%0AEMAIL:sudesigmgo@gmail.com%0AADR:;;%
+EC%84%9C%EC%9A%B8%EC%8B%9C%20%EC%86%A1%ED%8C%8C%EA%B5%AC%20%EC%98%AC%EB%A6%BC%ED%94%BD%EB%A1%
+9C%2035%EA%B0%80%EA%B8%B8%2010,%20%EB%8D%94%EC%83%B5%EC%8A%A4%ED%83%80%ED%8C%8C%ED%81%AC%
+20A-203%0AURL:https://litt.ly/kghcoach%0AEND:VCARD" 
+     download="Kim_Gil_Ho.vcf" class="download-btn">📥 명함 받기 기록 (연락처 저장)</a>
+
+  <hr style="margin: 30px 0;" />
+  <h3>명함을 받으셨다면 아래 내용을 남겨주세요</h3>
+  <input type="text" placeholder="당신의 이름을 입력하세요" /><br/>
+  <input type="file" accept="image/*" /><br/>
 </body>
 </html>
