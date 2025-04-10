@@ -1,57 +1,98 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <title>김길호 디지털 명함</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 20px; text-align: center; }
-    input, button { padding: 10px; margin: 10px; width: 80%; max-width: 400px; }
-    button { background: #007bff; color: white; border: none; border-radius: 5px; }
-    #statusMsg { margin-top: 10px; color: green; font-weight: bold; }
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card {
+      background: #fff;
+      margin-top: 40px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 450px;
+      text-align: center;
+    }
+    .card h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    .card p {
+      margin: 5px 0;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .form {
+      margin-top: 30px;
+    }
+    input, button {
+      padding: 12px;
+      margin: 8px 0;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #statusMsg {
+      margin-top: 10px;
+      color: #28a745;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <h1>김길호 (대표이사)</h1>
-  <p>에스유디자인(주)</p>
-  <p>📞 02-414-0622 (회사)</p>
-  <p>📠 02-414-0623 (팩스)</p>
-  <p>📱 010-2749-2157</p>
-  <p>📧 sudesignoffice@gmail.com</p>
-  <p>📧 (개인) sudesigmgo@gmail.com</p>
-  <p>🏢 서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203</p>
-  <p>🔗 <a href="https://litt.ly/kghcoach" target="_blank">최신 프로필 보기</a></p>
-  <br/>
-  <a href="data:text/vcard;charset=utf-8,
-BEGIN:VCARD
-VERSION:3.0
-N:Kim;Gil-ho;;;
-FN:김길호
-ORG:에스유디자인(주)
-TITLE:대표이사
-TEL;TYPE=WORK,VOICE:02-414-0622
-TEL;TYPE=CELL,VOICE:010-2749-2157
-EMAIL:sudesignoffice@gmail.com
-EMAIL:sudesigmgo@gmail.com
-ADR:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;
-URL:https://litt.ly/kghcoach
-END:VCARD" download="Kim_Gil_Ho.vcf">
-  📥 연락처 저장하기 (vCard)
-  </a>
+  <div class="card">
+    <h1>김길호 (대표이사)</h1>
+    <p><strong>에스유디자인(주)</strong></p>
+    <p>📞 02-414-0622</p>
+    <p>📠 02-414-0623</p>
+    <p>📱 010-2749-2157</p>
+    <p>📧 sudesignoffice@gmail.com</p>
+    <p>📧 (개인) sudesigmgo@gmail.com</p>
+    <p>🏢 서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203</p>
+    <p>🔗 <a href="https://litt.ly/kghcoach" target="_blank">최신 프로필 보기</a></p>
+    <p><a href="data:text/vcard;charset=utf-8,BEGIN:VCARD\nVERSION:3.0\nN:Kim;Gil-ho;;;\nFN:김길호\nORG:에스유디자인(주)\nTITLE:대표이사\nTEL;TYPE=WORK,VOICE:02-414-0622\nTEL;TYPE=CELL,VOICE:010-2749-2157\nEMAIL:sudesignoffice@gmail.com\nEMAIL:sudesigmgo@gmail.com\nADR:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;\nURL:https://litt.ly/kghcoach\nEND:VCARD" download="Kim_Gil_Ho.vcf">📥 연락처 저장하기</a></p>
 
-  <hr style="margin: 30px 0;" />
-  <h3>명함을 받으셨다면 아래 내용을 남겨주세요</h3>
-  <input type="text" id="receiverName" placeholder="당신의 이름을 입력하세요" /><br/>
-  <input type="file" id="receiverImage" accept="image/*" capture="environment" /><br/>
-  <button onclick="submitRecord()">명함 받기 전송</button>
-  <p id="statusMsg"></p>
+    <div class="form">
+      <h3>명함을 받으셨다면 이름과 사진을 남겨주세요</h3>
+      <input type="text" id="receiverName" placeholder="당신의 이름을 입력하세요" />
+      <input type="file" id="receiverImage" accept="image/*" capture="environment" />
+      <button onclick="submitRecord()">명함 받기 전송</button>
+      <p id="statusMsg"></p>
+    </div>
+  </div>
 
   <script type="module">
-    import {{ initializeApp }} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import {{ getFirestore, collection, addDoc, serverTimestamp }} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import {{ getStorage, ref, uploadBytes, getDownloadURL }} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
-    const firebaseConfig = {{
+    const firebaseConfig = {
       apiKey: "AIzaSyCkjC3jGH0cYxjDjkau5E9p73y4rgDcc44",
       authDomain: "sudesign-namecard.firebaseapp.com",
       projectId: "sudesign-namecard",
@@ -59,54 +100,61 @@ END:VCARD" download="Kim_Gil_Ho.vcf">
       messagingSenderId: "67523972912",
       appId: "1:67523972912:web:0b11636b5f3deeec5742f5",
       measurementId: "G-SRPYW06VWB"
-    }};
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    window.submitRecord = () => {{
-      const name = document.getElementById("receiverName").value;
+    window.submitRecord = () => {
+      const name = document.getElementById("receiverName").value.trim();
       const file = document.getElementById("receiverImage").files[0];
       const msg = document.getElementById("statusMsg");
-      if (!name) {{
-        msg.innerText = "이름을 입력해주세요.";
+
+      if (!name) {
+        msg.innerText = "⚠️ 이름을 입력해주세요.";
+        msg.style.color = "#dc3545";
         return;
-      }}
-      msg.innerText = "위치 확인 중...";
-      navigator.geolocation.getCurrentPosition(async (position) => {{
+      }
+
+      msg.innerText = "📍 위치 확인 중...";
+      msg.style.color = "#333";
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
         let imageURL = "";
-        if (file) {{
+        if (file) {
           const storageRef = ref(storage, `received_cards/${Date.now()}_${file.name}`);
           await uploadBytes(storageRef, file);
           imageURL = await getDownloadURL(storageRef);
-        }}
+        }
 
-        fetch(`https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${{lng}}&y=${{lat}}`, {{
-          headers: {{
+        fetch(`https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`, {
+          headers: {
             Authorization: 'KakaoAK 35e17a3de123d2c236d1c5bfedafa411'
-          }}
-        }})
+          }
+        })
         .then(res => res.json())
-        .then(async (data) => {{
+        .then(async (data) => {
           const address = data.documents[0]?.address?.address_name || "주소 변환 실패";
-          await addDoc(collection(db, "scan_records"), {{
+          await addDoc(collection(db, "scan_records"), {
             name: name,
             image: imageURL,
             latitude: lat,
             longitude: lng,
             address: address,
             timestamp: serverTimestamp()
-          }});
-          msg.innerText = "명함이 전송되었습니다. 감사합니다!";
-        }});
-      }}, () => {{
-        msg.innerText = "위치 정보를 가져올 수 없습니다. 위치 권한을 허용해주세요.";
-      }});
-    }};
+          });
+          msg.innerText = "✅ 명함이 전송되었습니다. 감사합니다!";
+          msg.style.color = "#28a745";
+        });
+      }, () => {
+        msg.innerText = "❌ 위치 정보를 가져올 수 없습니다. 위치 권한을 허용해주세요.";
+        msg.style.color = "#dc3545";
+      });
+    };
   </script>
 </body>
 </html>
