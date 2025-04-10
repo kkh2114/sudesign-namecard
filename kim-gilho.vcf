@@ -1,11 +1,14 @@
 BEGIN:VCARD
 VERSION:3.0
+N:Kim;Gil-ho;;;
 FN:김길호
 ORG:에스유디자인(주)
 TITLE:대표이사
-TEL;TYPE=WORK:02-414-0622
+TEL;TYPE=WORK,VOICE:02-414-0622
+TEL;TYPE=CELL,VOICE:010-2749-2157
 EMAIL:sudesignoffice@gmail.com
+EMAIL:sudesigmgo@gmail.com
+ADR:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;;
 URL:https://litt.ly/kghcoach
-ADR;TYPE=WORK:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;
-NOTE:최신 정보는 위 URL에서 확인하세요.
+PHOTO;VALUE=URI:https://kkh2114.github.io/profile.jpg
 END:VCARD
