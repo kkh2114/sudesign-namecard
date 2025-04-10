@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -48,6 +47,7 @@
       await addDoc(collection(db, "scan_records"), {
         name: "홍길동",
         address: "서울시 강남구 테헤란로 123",
+        message: "샘플 메시지입니다.",
         imageUrl: "https://via.placeholder.com/100",
         timestamp: Timestamp.now()
       });
@@ -69,7 +69,9 @@
           row.insertCell(0).textContent = data.name || "";
           row.insertCell(1).textContent = data.address || "";
           row.insertCell(2).textContent = new Date(data.timestamp?.seconds * 1000).toLocaleString();
-          const imgCell = row.insertCell(3);
+          const msgCell = row.insertCell(3);
+          msgCell.textContent = data.message || "";
+          const imgCell = row.insertCell(4);
           if (data.imageUrl) {
             const img = document.createElement("img");
             img.src = data.imageUrl;
@@ -83,6 +85,7 @@
             이름: data.name || "",
             주소: data.address || "",
             시간: new Date(data.timestamp?.seconds * 1000).toLocaleString(),
+            메시지: data.message || "",
             이미지: data.imageUrl || ""
           });
         });
@@ -113,7 +116,7 @@
     <button onclick="exportExcel()">📥 엑셀로 다운로드</button>
     <button onclick="addSampleRecord()">🧪 샘플 데이터 추가</button>
     <table border="1" id="recordsTable">
-      <tr><th>이름</th><th>주소</th><th>시간</th><th>이미지</th></tr>
+      <tr><th>이름</th><th>주소</th><th>시간</th><th>메시지</th><th>이미지</th></tr>
     </table>
   </div>
 </body>
