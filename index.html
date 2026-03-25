@@ -5,175 +5,208 @@
   <title>김길호 디지털 명함</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Helvetica Neue', sans-serif;
-      margin: 0;
-      padding: 0 0 60px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #f4f6f9;
       color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      position: relative;
     }
     .card {
       background: #fff;
-      margin-top: 40px;
-      padding: 30px 20px;
+      margin-top: 30px;
+      padding: 30px 24px;
       border-radius: 24px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 420px;
-      box-sizing: border-box;
     }
-    .card h1 {
-      font-size: 22px;
-      margin-bottom: 5px;
+    .profile-section {
+      text-align: center;
+      margin-bottom: 20px;
     }
-    .card p {
-      margin: 4px 0;
-      font-size: 14px;
+    .profile-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #e9ecef;
+      margin-bottom: 12px;
     }
-    .btn-download {
-      display: inline-flex;
+    .card h1 { font-size: 22px; margin-bottom: 4px; }
+    .card .subtitle { font-size: 14px; color: #666; margin-bottom: 16px; }
+    .info-row {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      background-color: #343a40;
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { width: 24px; text-align: center; margin-right: 10px; flex-shrink: 0; }
+    .info-row a { color: #007bff; text-decoration: none; }
+
+    /* 단계 1: 연락처 저장 버튼 */
+    .btn-save {
+      display: block;
+      background: linear-gradient(135deg, #343a40, #495057);
       color: white;
-      padding: 14px;
-      margin: 20px auto;
-      width: 90%;
+      padding: 16px;
+      margin: 24px 0 0;
+      width: 100%;
       border: none;
-      border-radius: 12px;
-      font-size: 16px;
+      border-radius: 14px;
+      font-size: 17px;
       font-weight: bold;
       text-align: center;
       text-decoration: none;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.1s;
     }
-    .form {
-      margin-top: 24px;
+    .btn-save:active { transform: scale(0.98); }
+
+    /* 단계 2: 메시지 박스 (처음에 숨김) */
+    .message-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
-    input, textarea, button {
-      padding: 14px;
-      margin: 10px 0;
+    .message-overlay.show { display: flex; }
+    .message-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
       width: 100%;
-      box-sizing: border-box;
+      max-width: 400px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .message-box h3 {
+      font-size: 17px;
+      margin-bottom: 6px;
+      color: #333;
+    }
+    .message-box .desc {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+    .message-box input, .message-box textarea {
+      padding: 13px;
+      margin: 8px 0;
+      width: 100%;
       border: 1px solid #ddd;
       border-radius: 12px;
       font-size: 15px;
+      box-sizing: border-box;
     }
-    textarea {
+    .message-box textarea {
       resize: vertical;
       min-height: 80px;
     }
-    button {
-      background-color: #007bff;
+    .message-box input[type="file"] {
+      padding: 10px;
+      font-size: 13px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn-submit {
+      flex: 2;
+      background: #007bff;
       color: white;
       border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
       font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.3s ease;
     }
-    button:hover {
-      background-color: #0056b3;
+    .btn-submit:hover { background: #0056b3; }
+    .btn-skip {
+      flex: 1;
+      background: #e9ecef;
+      color: #666;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
     }
+    .btn-skip:hover { background: #dee2e6; }
     #statusMsg {
       margin-top: 12px;
-      color: #28a745;
       font-weight: bold;
       font-size: 14px;
+      text-align: center;
     }
     #loading {
       display: none;
       margin-top: 10px;
       color: #007bff;
       font-weight: bold;
-    }
-    .exit-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #fff;
-      border-top: 1px solid #ddd;
       text-align: center;
-      padding: 14px 0;
-      box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
     }
-    .exit-bar button {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 8px;
+    .done-msg {
+      text-align: center;
+      padding: 20px 0;
+      color: #28a745;
+      font-size: 15px;
       font-weight: bold;
-      cursor: pointer;
-    }
-    .exit-bar button:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
-      @media (max-width: 600px) {
-      #exitButton {
-        right: 10px !important;
-        bottom: 10px !important;
-        width: 50px !important;
-        height: 50px !important;
-        font-size: 11px !important;
-      }
-    }
-
-    #exitButton {
-      position: sticky !important;
-      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>김길호 (대표이사)</h1>
-    <p><strong>에스유디자인(주)</strong></p>
-    <p>📞 02-414-0622</p>
-    <p>📠 02-414-0623</p>
-    <p>📱 010-2749-2157</p>
-    <p>📧 sudesignoffice@gmail.com</p>
-    <p>📧 (개인) sudesigmgo@gmail.com</p>
-    <p>🏢 서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203</p>
-    <p>🔗 <a href="https://litt.ly/kghcoach" target="_blank">최신 프로필 보기</a></p>
-    <a class="btn-download" href="Kim_Gil_Ho.vcf" id="vcfLink" download>📥 연락처 저장하기</a>
 
-    <div class="form">
-      <h3>명함을 받으셨다면 이름과 사진, 메시지를 남겨주세요</h3>
-      <input type="text" id="receiverName" placeholder="당신의 이름을 입력하세요" />
-      <input type="file" id="receiverImage" accept="image/*" capture="environment" />
-      <textarea id="receiverMessage" placeholder="님과 인연을 기억할 수 있는 당신의 메시지를 남겨 주세요"></textarea>
-      <button onclick="submitRecord()">내 명함 보냅니다</button>
-      <p id="loading">⏳ 전송 중입니다...</p>
-      <p id="statusMsg"></p>
+  <!-- ===== 단계 1: 명함 카드 + 연락처 저장 ===== -->
+  <div class="card" id="step1">
+    <div class="profile-section">
+      <img src="profile.jpg" class="profile-img" alt="김길호" onerror="this.style.display='none'">
+      <h1>김길호</h1>
+      <div class="subtitle">대표이사 · 에스유디자인(주)</div>
     </div>
+
+    <div class="info-row"><span class="info-icon">📞</span> 02-414-0622</div>
+    <div class="info-row"><span class="info-icon">📠</span> 02-414-0623</div>
+    <div class="info-row"><span class="info-icon">📱</span> <a href="tel:010-2749-2157">010-2749-2157</a></div>
+    <div class="info-row"><span class="info-icon">📧</span> <a href="mailto:sudesignoffice@gmail.com">sudesignoffice@gmail.com</a></div>
+    <div class="info-row"><span class="info-icon">🏢</span> 서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203</div>
+    <div class="info-row"><span class="info-icon">🔗</span> <a href="https://litt.ly/kghcoach" target="_blank">프로필 보기</a></div>
+
+    <a class="btn-save" href="kim-gilho.vcf" id="vcfLink" download onclick="onVcfClick()">📥 연락처 저장하기</a>
   </div>
 
-  <div style="text-align: center; margin-top: 20px;">
-  <button id="exitButton" onclick="downloadAndExit()" disabled style="
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #28a745;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    position: sticky; margin-top: 10px;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  " disabled>나가기</button>
-</div>
+  <!-- ===== 단계 2: 메시지 박스 (오버레이) ===== -->
+  <div class="message-overlay" id="msgOverlay">
+    <div class="message-box">
+      <h3>😊 반갑습니다!</h3>
+      <p class="desc">이름과 메시지를 남겨주시면 인연을 기억하겠습니다.<br>건너뛰셔도 됩니다.</p>
+      <input type="text" id="receiverName" placeholder="이름" />
+      <input type="file" id="receiverImage" accept="image/*" capture="environment" />
+      <textarea id="receiverMessage" placeholder="메시지를 남겨주세요 (선택)"></textarea>
+      <p id="loading">⏳ 전송 중입니다...</p>
+      <p id="statusMsg"></p>
+      <div class="btn-row">
+        <button class="btn-skip" onclick="closeOverlay()">건너뛰기</button>
+        <button class="btn-submit" onclick="submitRecord()">보내기</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -194,10 +227,20 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    const exitButton = document.getElementById("exitButton");
-    const vcfLink = document.getElementById("vcfLink");
+    // 단계 1: VCF 다운로드 클릭 → 2초 후 메시지 박스 표시
+    window.onVcfClick = () => {
+      setTimeout(() => {
+        document.getElementById('msgOverlay').classList.add('show');
+      }, 2000);
+    };
 
-    window.submitRecord = () => {
+    // 메시지 박스 닫기 (건너뛰기)
+    window.closeOverlay = () => {
+      document.getElementById('msgOverlay').classList.remove('show');
+    };
+
+    // 메시지 전송
+    window.submitRecord = async () => {
       const name = document.getElementById("receiverName").value.trim();
       const message = document.getElementById("receiverMessage").value.trim();
       const file = document.getElementById("receiverImage").files[0];
@@ -213,10 +256,7 @@
       msg.innerText = "";
       loading.style.display = "block";
 
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
+      try {
         let imageURL = "";
         if (file) {
           const storageRef = ref(storage, `received_cards/${Date.now()}_${file.name}`);
@@ -224,45 +264,41 @@
           imageURL = await getDownloadURL(storageRef);
         }
 
-        fetch(`https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`, {
-          headers: {
-            Authorization: 'KakaoAK 35e17a3de123d2c236d1c5bfedafa411'
-          }
-        })
-        .then(res => res.json())
-        .then(async (data) => {
-          const address = data.documents[0]?.address?.address_name || "주소 변환 실패";
-          await addDoc(collection(db, "scan_records"), {
-            name: name,
-            message: message,
-            image: imageURL,
-            latitude: lat,
-            longitude: lng,
-            address: address,
-                        timestamp: serverTimestamp()
+        // 위치 정보 (선택, 실패해도 진행)
+        let lat = null, lng = null, address = "";
+        try {
+          const pos = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
           });
-          loading.style.display = "none";
-          msg.innerText = "✅ 명함이 전송되었습니다. 감사합니다!";
-          msg.style.color = "#28a745";
-          exitButton.disabled = false;
-        });
-      }, () => {
-        loading.style.display = "none";
-        msg.innerText = "❌ 위치 정보를 가져올 수 없습니다. 위치 권한을 허용해주세요.";
-        msg.style.color = "#dc3545";
-      });
-    };
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+          const geoRes = await fetch(`https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`, {
+            headers: { Authorization: 'KakaoAK 35e17a3de123d2c236d1c5bfedafa411' }
+          });
+          const geoData = await geoRes.json();
+          address = geoData.documents[0]?.address?.address_name || "";
+        } catch {}
 
-    window.downloadAndExit = () => {
-  vcfLink.click();
-  setTimeout(() => {
-    const confirmed = confirm("연락처가 저장되었나요? 저장 후 확인을 눌러주세요.");
-    if (confirmed) {
-      alert("감사합니다. 명함이 저장되었습니다! 곧 메인 페이지로 이동합니다.");
-      setTimeout(() => window.location.href = "https://kkh2114.github.io", 1500);
-    }
-  }, 500);
-};
+        await addDoc(collection(db, "scan_records"), {
+          name, message, image: imageURL,
+          latitude: lat, longitude: lng, address,
+          timestamp: serverTimestamp()
+        });
+
+        loading.style.display = "none";
+        msg.innerText = "✅ 감사합니다! 좋은 인연이 되길 바랍니다.";
+        msg.style.color = "#28a745";
+
+        setTimeout(() => {
+          document.getElementById('msgOverlay').classList.remove('show');
+        }, 2000);
+
+      } catch (e) {
+        loading.style.display = "none";
+        msg.innerText = "❌ 전송에 실패했습니다. 다시 시도해주세요.";
+        msg.style.color = "#dc3545";
+      }
+    };
   </script>
 </body>
 </html>
