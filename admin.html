@@ -87,7 +87,10 @@
     import {
       getAuth,
       signInWithEmailAndPassword,
-      onAuthStateChanged
+      signOut,
+      onAuthStateChanged,
+      setPersistence,
+      browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import {
       getFirestore,
@@ -110,19 +113,72 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    await setPersistence(auth, browserLocalPersistence);
+
     let allData = [];
     let currentPage = 1;
     const recordsPerPage = 10;
+
+    // 생체인증 연동: 기기 Credential Manager에 저장
+    async function saveCredentials(email, password) {
+      if (!window.PasswordCredential) return;
+      try {
+        const cred = new PasswordCredential({ id: email, password, name: '에스유디자인 관리자' });
+        await navigator.credentials.store(cred);
+      } catch (e) {}
+    }
+
+    // 자동 로그인 (UI 없이, 저장된 자격증명 사용)
+    async function tryAutoLogin() {
+      if (!navigator.credentials) return false;
+      try {
+        const cred = await navigator.credentials.get({ password: true, mediation: 'silent' });
+        if (cred?.type === 'password') {
+          await signInWithEmailAndPassword(auth, cred.id, cred.password);
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    // 생체인증 버튼 탭 시 호출 (Face ID / 지문 / PIN 다이얼로그 표시)
+    window.triggerBiometric = async () => {
+      if (!navigator.credentials) { showPasswordForm(); return; }
+      try {
+        const cred = await navigator.credentials.get({ password: true, mediation: 'required' });
+        if (cred?.type === 'password') {
+          await signInWithEmailAndPassword(auth, cred.id, cred.password);
+        }
+      } catch (e) {
+        showPasswordForm();
+      }
+    };
+
+    function showPasswordForm() {
+      document.getElementById('passwordForm').style.display = 'block';
+      document.getElementById('biometricBtn').style.display = 'none';
+    }
 
     async function login() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       try {
         await signInWithEmailAndPassword(auth, email, password);
+        await saveCredentials(email, password);
       } catch (error) {
-        alert("로그인 실패: " + error.message);
+        document.getElementById('loginError').textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
       }
     }
+
+    window.logout = async () => {
+      await navigator.credentials?.preventSilentAccess?.();
+      await signOut(auth);
+      document.getElementById('adminSection').style.display = 'none';
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('biometricBtn').style.display =
+        (navigator.credentials && window.PasswordCredential) ? 'block' : 'none';
+      document.getElementById('passwordForm').style.display = 'none';
+    };
 
     async function addSampleRecord() {
       await addDoc(collection(db, "scan_records"), {
@@ -207,6 +263,7 @@
     }
 
     onAuthStateChanged(auth, async (user) => {
+      document.getElementById('loadingState').style.display = 'none';
       if (user) {
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("adminSection").style.display = "block";
@@ -235,6 +292,16 @@
           XLSX.utils.book_append_sheet(workbook, worksheet, "명함기록");
           XLSX.writeFile(workbook, "명함기록.xlsx");
         };
+      } else {
+        const ok = await tryAutoLogin();
+        if (!ok) {
+          document.getElementById("loginSection").style.display = "block";
+          if (navigator.credentials && window.PasswordCredential) {
+            document.getElementById('biometricBtn').style.display = 'block';
+          } else {
+            showPasswordForm();
+          }
+        }
       }
     });
 
@@ -256,6 +323,7 @@
     };
 
     window.login = login;
+    window.showPasswordForm = showPasswordForm;
     window.addSampleRecord = addSampleRecord;
     window.filterTable = filterTable;
     window.sortTable = sortTable;
@@ -268,12 +336,41 @@
     <br><button onclick="document.getElementById('installBanner').style.display='none'" style="margin-top:8px; background:transparent; border:1px solid #fff; color:#fff; padding:4px 12px; border-radius:6px; font-size:13px; cursor:pointer;">닫기</button>
   </div>
 
-  <div id="loginSection">
-    <h2>관리자 로그인</h2>
-    <input type="email" id="email" placeholder="이메일 입력" />
-    <input type="password" id="password" placeholder="비밀번호 입력" />
-    <button onclick="login()">로그인</button>
-    <p style="margin-top:16px;"><button onclick="showInstallGuide()" style="background:none;border:none;color:#007bff;font-size:13px;cursor:pointer;text-decoration:underline;">📲 홈 화면에 추가하는 방법</button></p>
+  <!-- 초기 로딩 -->
+  <div id="loadingState" style="text-align:center; padding:60px 0; color:#888; font-size:15px;">
+    ⏳ 인증 확인 중...
+  </div>
+
+  <div id="loginSection" style="display:none; max-width:360px; margin:60px auto; padding:0 20px;">
+    <div style="text-align:center; margin-bottom:32px;">
+      <img src="icon-192.png" style="width:72px; border-radius:18px; margin-bottom:12px;">
+      <h2 style="font-size:20px; margin:0;">에스유디자인 관리자</h2>
+    </div>
+
+    <!-- 생체인증 버튼 (저장된 자격증명 있을 때) -->
+    <button id="biometricBtn" onclick="triggerBiometric()" style="display:none; width:100%; padding:16px; background:#343a40; color:#fff; border:none; border-radius:14px; font-size:17px; font-weight:bold; cursor:pointer; margin-bottom:16px;">
+      🔒 생체인증으로 로그인
+    </button>
+
+    <!-- 이메일/비밀번호 폼 (첫 로그인 또는 생체인증 실패 시) -->
+    <div id="passwordForm" style="display:none;">
+      <input type="email" id="email" placeholder="이메일 입력"
+        style="width:100%; padding:13px; margin-bottom:10px; border:1px solid #ddd; border-radius:10px; font-size:15px; box-sizing:border-box;" />
+      <input type="password" id="password" placeholder="비밀번호 입력"
+        style="width:100%; padding:13px; margin-bottom:10px; border:1px solid #ddd; border-radius:10px; font-size:15px; box-sizing:border-box;" />
+      <p id="loginError" style="color:#dc3545; font-size:13px; margin:0 0 10px;"></p>
+      <button onclick="login()" style="width:100%; padding:14px; background:#007bff; color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:bold; cursor:pointer;">로그인</button>
+      <p style="text-align:center; margin-top:8px; font-size:12px; color:#aaa;">로그인 후 생체인증이 자동 등록됩니다</p>
+    </div>
+
+    <!-- 생체인증 버튼 있을 때 다른 방법 링크 -->
+    <p style="text-align:center; margin-top:12px;">
+      <button onclick="showPasswordForm()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;text-decoration:underline;">다른 방법으로 로그인</button>
+    </p>
+
+    <p style="text-align:center; margin-top:8px;">
+      <button onclick="showInstallGuide()" style="background:none;border:none;color:#007bff;font-size:13px;cursor:pointer;text-decoration:underline;">📲 홈 화면에 추가하는 방법</button>
+    </p>
   </div>
 
   <script>
@@ -294,6 +391,10 @@
   </script>
 
   <div id="adminSection" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="margin:0;">에스유디자인 관리자</h2>
+      <button onclick="logout()" style="background:none; border:1px solid #ccc; padding:6px 14px; border-radius:8px; font-size:13px; color:#666; cursor:pointer;">로그아웃</button>
+    </div>
 
     <!-- QR 생성 -->
     <div style="border:1px solid #ddd;border-radius:12px;padding:20px;margin-bottom:28px;background:#fafafa;">
