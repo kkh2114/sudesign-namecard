@@ -216,12 +216,39 @@
 
     const ownerMemo = new URLSearchParams(window.location.search).get('memo') || "";
 
-    window.downloadVcf = () => {
-      const noteField = ownerMemo ? `NOTE:${ownerMemo}\n` : "";
+    window.downloadVcf = async () => {
+      const btn = document.querySelector('.btn-save');
+      btn.textContent = '📍 위치 확인 중...';
+      btn.disabled = true;
+
+      // 위치 취득 → 주소 변환 (최대 5초, 실패해도 진행)
+      let locationNote = "";
+      try {
+        const pos = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+        );
+        const { latitude: lat, longitude: lng } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
+            { headers: { Authorization: 'KakaoAK 35e17a3de123d2c236d1c5bfedafa411' } }
+          );
+          const data = await res.json();
+          const address = data.documents[0]?.address?.address_name;
+          if (address) locationNote = `이 명함은 ${address}에서 기록되었습니다.`;
+        } catch {}
+      } catch {}
+
+      // NOTE 필드: 위치(자동) + ownerMemo(선택) 별도 줄로 결합
+      const noteParts = [locationNote, ownerMemo].filter(Boolean);
+      const noteField = noteParts.length > 0 ? `NOTE:${noteParts.join('\\n')}\n` : "";
+
       const vcf = `BEGIN:VCARD\nVERSION:3.0\nN:Kim;Gil-ho;;;\nFN:김길호\nORG:에스유디자인(주)\nTITLE:대표이사\nTEL;TYPE=WORK,VOICE:02-414-0622\nTEL;TYPE=CELL,VOICE:010-2749-2157\nEMAIL:sudesignoffice@gmail.com\nEMAIL:sudesigmgo@gmail.com\nADR:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;;\nURL:https://litt.ly/kghcoach\nPHOTO;VALUE=URI:https://kkh2114.github.io/profile.jpg\n${noteField}END:VCARD`;
 
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      btn.textContent = '📥 연락처 저장하기';
+      btn.disabled = false;
 
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
         window.location.href = 'data:text/vcard;charset=utf-8,' + encodeURIComponent(vcf);
       } else {
