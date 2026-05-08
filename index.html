@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <title>김길호 디지털 명함</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="namecard-manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="김길호 명함">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#343a40">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -169,6 +175,40 @@
       font-size: 15px;
       font-weight: bold;
     }
+    .install-banner {
+      display: none;
+      background: #343a40;
+      color: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .install-banner button.close-btn {
+      margin-top: 8px;
+      background: transparent;
+      border: 1px solid #fff;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-install {
+      display: none;
+      background: #fff;
+      color: #343a40;
+      border: 1.5px solid #343a40;
+      padding: 12px;
+      margin-top: 10px;
+      width: 100%;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -190,6 +230,16 @@
     <div class="info-row"><span class="info-icon">🔗</span> <a href="https://litt.ly/kghcoach" target="_blank">프로필 보기</a></div>
 
     <button class="btn-save" onclick="downloadVcf()">📥 연락처 저장하기</button>
+
+    <!-- 홈 화면 추가 (Android Chrome: 설치 프롬프트) -->
+    <button class="btn-install" id="installBtn">📲 홈 화면에 추가</button>
+
+    <!-- iOS 안내 배너 -->
+    <div class="install-banner" id="installBanner">
+      <strong>📲 홈 화면에 추가하는 방법</strong><br>
+      <span id="installGuideText"></span>
+      <br><button class="close-btn" onclick="document.getElementById('installBanner').style.display='none'">닫기</button>
+    </div>
   </div>
 
   <!-- ===== 단계 2: 메시지 박스 (오버레이) ===== -->
@@ -208,6 +258,42 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // Android: beforeinstallprompt 이벤트로 설치 버튼 표시
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').style.display = 'block';
+    });
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('installBtn').style.display = 'none';
+    });
+
+    // iOS: 모바일이지만 beforeinstallprompt 없으면 안내 배너 표시
+    window.addEventListener('load', () => {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent) || isIOS;
+      const isStandalone = window.navigator.standalone === true ||
+        window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isMobile && !isStandalone && !deferredPrompt) {
+        setTimeout(() => {
+          const banner = document.getElementById('installBanner');
+          const guideText = document.getElementById('installGuideText');
+          if (isIOS) {
+            guideText.textContent = '① Safari 하단 공유 버튼(□↑) 탭 → ② "홈 화면에 추가" 탭 → ③ "추가" 탭';
+            banner.style.display = 'block';
+          }
+        }, 4000);
+      }
+    });
+  </script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
