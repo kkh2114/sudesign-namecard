@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin - 명함 기록</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -76,19 +77,19 @@
     }
   </style>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import {
       getAuth,
       signInWithEmailAndPassword,
       onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import {
       getFirestore,
       collection,
       getDocs,
       addDoc,
       Timestamp
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCkjC3jGH0cYxjDjkau5E9p73y4rgDcc44",
@@ -135,7 +136,7 @@
 
     function renderTable(dataArray) {
       const table = document.getElementById("recordsTable");
-      table.innerHTML = "<tr><th onclick=\"sortTable(0)\">이름</th><th onclick=\"sortTable(1)\">주소</th><th onclick=\"sortTable(2)\">시간</th><th onclick=\"sortTable(3)\">메시지</th><th>이미지</th></tr>";
+      table.innerHTML = "<tr><th onclick=\"sortTable(0)\">이름</th><th onclick=\"sortTable(1)\">주소</th><th onclick=\"sortTable(2)\">시간</th><th onclick=\"sortTable(3)\">메시지</th><th onclick=\"sortTable(4)\">내메모</th><th>이미지</th></tr>";
       const pageData = paginate(dataArray, currentPage);
 
       pageData.forEach(data => {
@@ -144,7 +145,8 @@
         row.insertCell(1).textContent = data.주소 || "";
         row.insertCell(2).textContent = data.시간 || "";
         row.insertCell(3).textContent = data.메시지 || "";
-        const imgCell = row.insertCell(4);
+        row.insertCell(4).textContent = data.내메모 || "";
+        const imgCell = row.insertCell(5);
         if (data.이미지) {
           const img = document.createElement("img");
           img.src = data.이미지;
@@ -187,7 +189,7 @@
 
     let sortAsc = true;
     function sortTable(colIndex) {
-      const keys = ["이름", "주소", "시간", "메시지"];
+      const keys = ["이름", "주소", "시간", "메시지", "내메모"];
       const key = keys[colIndex];
       filteredData.sort((a, b) => {
         const valA = a[key] || "";
@@ -213,7 +215,8 @@
             주소: data.address || "",
             시간: new Date(data.timestamp?.seconds * 1000).toLocaleString(),
             메시지: data.message || "",
-            이미지: data.imageUrl || ""
+            내메모: data.ownerMemo || "",
+            이미지: data.image || ""
           });
         });
 
@@ -228,6 +231,23 @@
         };
       }
     });
+
+    const BASE_URL = "https://kkh2114.github.io/sudesign-namecard/";
+
+    window.generateQR = () => {
+      const memo = document.getElementById('memoInput').value.trim();
+      const url = memo ? `${BASE_URL}?memo=${encodeURIComponent(memo)}` : BASE_URL;
+
+      document.getElementById('qrcode').innerHTML = "";
+      new QRCode(document.getElementById('qrcode'), { text: url, width: 200, height: 200 });
+      document.getElementById('qrUrl').textContent = url;
+      document.getElementById('copyBtn').style.display = 'inline-block';
+      window._currentQRUrl = url;
+    };
+
+    window.copyQRUrl = () => {
+      navigator.clipboard.writeText(window._currentQRUrl).then(() => alert('URL이 복사되었습니다!'));
+    };
 
     window.login = login;
     window.addSampleRecord = addSampleRecord;
@@ -244,6 +264,20 @@
   </div>
 
   <div id="adminSection" style="display:none;">
+
+    <!-- QR 생성 -->
+    <div style="border:1px solid #ddd;border-radius:12px;padding:20px;margin-bottom:28px;background:#fafafa;">
+      <h3 style="margin-bottom:6px;">📲 QR코드 생성</h3>
+      <p style="font-size:13px;color:#888;margin-bottom:12px;">메모를 입력하면 연락처 저장 시 메모란에 자동 주입됩니다. 장소나 상황마다 새로 입력하세요.</p>
+      <input type="text" id="memoInput" placeholder="예: 2026년 삼정호텔 동문모임에서 뵈었습니다"
+        style="width:100%;max-width:500px;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;margin-bottom:10px;" />
+      <br>
+      <button onclick="generateQR()" style="margin-right:8px;">QR 생성</button>
+      <button onclick="copyQRUrl()" id="copyBtn" style="display:none;">🔗 URL 복사</button>
+      <div id="qrcode" style="margin-top:16px;display:inline-block;"></div>
+      <p id="qrUrl" style="font-size:12px;color:#555;margin-top:8px;word-break:break-all;max-width:500px;"></p>
+    </div>
+
     <h2>명함 수신 기록</h2>
     <input type="text" id="searchInput" oninput="filterTable()" placeholder="이름, 주소, 메시지 검색" />
     <button onclick="exportExcel()">📥 엑셀로 다운로드</button>
