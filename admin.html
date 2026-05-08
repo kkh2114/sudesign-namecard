@@ -125,7 +125,13 @@
       try {
         const cred = new PasswordCredential({ id: email, password, name: '에스유디자인 관리자' });
         await navigator.credentials.store(cred);
+        localStorage.setItem('credentialsSaved', '1');
       } catch (e) {}
+    }
+
+    function hasSavedCredentials() {
+      return localStorage.getItem('credentialsSaved') === '1' &&
+        !!navigator.credentials && !!window.PasswordCredential;
     }
 
     // 자동 로그인 (UI 없이, 저장된 자격증명 사용)
@@ -175,9 +181,8 @@
       await signOut(auth);
       document.getElementById('adminSection').style.display = 'none';
       document.getElementById('loginSection').style.display = 'block';
-      document.getElementById('biometricBtn').style.display =
-        (navigator.credentials && window.PasswordCredential) ? 'block' : 'none';
-      document.getElementById('passwordForm').style.display = 'none';
+      document.getElementById('biometricBtn').style.display = hasSavedCredentials() ? 'block' : 'none';
+      document.getElementById('passwordForm').style.display = hasSavedCredentials() ? 'none' : 'block';
     };
 
     async function addSampleRecord() {
@@ -296,7 +301,7 @@
         const ok = await tryAutoLogin();
         if (!ok) {
           document.getElementById("loginSection").style.display = "block";
-          if (navigator.credentials && window.PasswordCredential) {
+          if (hasSavedCredentials()) {
             document.getElementById('biometricBtn').style.display = 'block';
           } else {
             showPasswordForm();
