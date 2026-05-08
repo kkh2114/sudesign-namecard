@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - 명함 기록</title>
+  <title>SU 명함 관리자</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SU 관리">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#343a40">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -256,12 +262,36 @@
   </script>
 </head>
 <body>
+  <div id="installBanner" style="display:none; background:#343a40; color:#fff; border-radius:12px; padding:14px 16px; margin-bottom:20px; font-size:14px; line-height:1.6;">
+    <strong>📲 홈 화면에 추가하는 방법</strong><br>
+    <span id="installGuideText"></span>
+    <br><button onclick="document.getElementById('installBanner').style.display='none'" style="margin-top:8px; background:transparent; border:1px solid #fff; color:#fff; padding:4px 12px; border-radius:6px; font-size:13px; cursor:pointer;">닫기</button>
+  </div>
+
   <div id="loginSection">
     <h2>관리자 로그인</h2>
     <input type="email" id="email" placeholder="이메일 입력" />
     <input type="password" id="password" placeholder="비밀번호 입력" />
     <button onclick="login()">로그인</button>
+    <p style="margin-top:16px;"><button onclick="showInstallGuide()" style="background:none;border:none;color:#007bff;font-size:13px;cursor:pointer;text-decoration:underline;">📲 홈 화면에 추가하는 방법</button></p>
   </div>
+
+  <script>
+    function showInstallGuide() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      let guide = "";
+      if (isIOS) {
+        guide = "① Safari 하단 공유 버튼(□↑) 탭 → ② '홈 화면에 추가' 탭 → ③ '추가' 탭";
+      } else if (isAndroid) {
+        guide = "① Chrome 우측 상단 ⋮ 메뉴 탭 → ② '홈 화면에 추가' 탭 → ③ '추가' 탭";
+      } else {
+        guide = "브라우저 메뉴에서 '홈 화면에 추가' 또는 '앱 설치'를 선택하세요.";
+      }
+      document.getElementById('installGuideText').textContent = guide;
+      document.getElementById('installBanner').style.display = 'block';
+    }
+  </script>
 
   <div id="adminSection" style="display:none;">
 
