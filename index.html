@@ -230,11 +230,13 @@
         const { latitude: lat, longitude: lng } = pos.coords;
         try {
           const res = await fetch(
-            `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
-            { headers: { Authorization: 'KakaoAK 35e17a3de123d2c236d1c5bfedafa411' } }
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ko`,
+            { headers: { 'User-Agent': 'sudesign-namecard/1.0' } }
           );
           const data = await res.json();
-          const address = data.documents[0]?.address?.address_name;
+          const address = data.address?.road
+            ? `${data.address.city || data.address.county || ''} ${data.address.road || ''}`.trim()
+            : data.display_name?.split(',').slice(0, 3).join(',').trim();
           if (address) locationNote = `이 명함은 ${address}에서 기록되었습니다.`;
         } catch {}
       } catch {}
@@ -318,11 +320,14 @@
           });
           lat = pos.coords.latitude;
           lng = pos.coords.longitude;
-          const geoRes = await fetch(`https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`, {
-            headers: { Authorization: 'KakaoAK 35e17a3de123d2c236d1c5bfedafa411' }
-          });
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ko`,
+            { headers: { 'User-Agent': 'sudesign-namecard/1.0' } }
+          );
           const geoData = await geoRes.json();
-          address = geoData.documents[0]?.address?.address_name || "";
+          address = geoData.address?.road
+            ? `${geoData.address.city || geoData.address.county || ''} ${geoData.address.road || ''}`.trim()
+            : geoData.display_name?.split(',').slice(0, 3).join(',').trim() || "";
         } catch {}
 
         await addDoc(collection(db, "scan_records"), {
