@@ -331,7 +331,7 @@
       const noteParts = [locationNote, ownerMemo].filter(Boolean);
       const noteField = noteParts.length > 0 ? `NOTE:${noteParts.join('\\n')}\n` : "";
 
-      const vcf = `BEGIN:VCARD\nVERSION:3.0\nN:Kim;Gil-ho;;;\nFN:김길호\nORG:에스유디자인(주)\nTITLE:대표이사\nTEL;TYPE=WORK,VOICE:02-414-0622\nTEL;TYPE=CELL,VOICE:010-2749-2157\nEMAIL:sudesignoffice@gmail.com\nEMAIL:sudesigmgo@gmail.com\nADR:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;;\nURL:https://litt.ly/kghcoach\nPHOTO;VALUE=URI:https://kkh2114.github.io/profile.jpg\n${noteField}END:VCARD`;
+      const vcf = `BEGIN:VCARD\nVERSION:3.0\nN:김;길호;;;\nFN:김길호\nORG:에스유디자인(주)\nTITLE:대표이사\nTEL;TYPE=WORK,VOICE:02-414-0622\nTEL;TYPE=CELL,VOICE:010-2749-2157\nEMAIL:sudesignoffice@gmail.com\nEMAIL:sudesigmgo@gmail.com\nADR:;;서울시 송파구 올림픽로 35가길 10, 더샵스타파크 A-203;;;;;\nURL:https://litt.ly/kghcoach\nPHOTO;VALUE=URI:https://kkh2114.github.io/profile.jpg\n${noteField}END:VCARD`;
 
       btn.textContent = '📥 연락처 저장하기';
       btn.disabled = false;
